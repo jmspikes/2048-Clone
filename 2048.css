@@ -1,0 +1,171 @@
+html *{
+	
+	font-family: Arial Black, Arial, Times, Helvetica;
+	text-align:center; 
+	/*tan*/
+	color: rgb(244,170,63);
+	vertical-align: middle;
+	line-height:100px;
+	font-size:7.5vh;
+	font-weight: bold;
+	text-shadow: -1px 0 white, 0 1px white, 1px 0 white, 0 -1px white;
+
+
+}
+
+
+/*border for the board*/
+#board{
+	width:500px;
+	height:500px;
+	border: 4px solid rgb(0,99,82);
+	border-radius: 20px;
+	margin-top: 10%;
+	display:inline-grid;
+	background-color: rgb(244,170,63);
+}
+
+#b1{
+
+
+	grid-area:a1;
+
+}
+
+#b2{
+
+	grid-area:a2;
+
+}
+
+#b3{
+
+	grid-area:a3;
+
+
+}
+
+#b4{
+
+	grid-area:a4;
+
+
+}
+
+#b5{
+
+	grid-area:b1;
+
+}
+
+#b6{
+
+	grid-area:b2;
+
+}
+
+#b7{
+
+	grid-area:b3;
+
+}
+
+#b8{
+
+	grid-area:b4;
+
+}
+
+#b9{
+
+	grid-area:c1;
+
+}
+
+#b10{
+	grid-area:c2;
+
+}
+
+#b11{
+
+	grid-area:c3;
+
+}
+
+#b12{
+
+	grid-area:c4;
+
+}
+
+#b13{
+
+	grid-area:d1;
+
+}
+
+#b14{
+
+	grid-area:d2;
+
+}
+
+#b15{
+
+	grid-area:d3;
+
+
+}
+
+#b16{
+
+	grid-area:d4;
+
+}
+
+
+
+#Background{
+
+	 background: linear-gradient(to right, rgb(8,105,166) , cyan);
+
+}
+
+/*classes*/
+.Center{
+
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+
+
+}
+
+.Shadow{
+
+	box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+
+}
+
+.Grid-Container{
+	display:grid;
+	/*sets grid setting*/
+	grid-template-areas:
+	'a1 a2 a3 a4'
+	'b1 b2 b3 b4'
+	'c1 c2 c3 c4'
+	'd1 d2 d3 d4';
+	grid-gap:10px;
+	padding:10px;
+
+}
+
+.Box{
+
+	width:100px;
+	height:100px;
+	background-color: rgb(194,114,0);
+	border: 4px solid rgb(255,190,98);
+
+}
