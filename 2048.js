@@ -6,9 +6,11 @@
 
 //globals for the number design
 let base = 'rgb(194,114,0)';
-//array of colors to be able to update colors programatically 
-//two = 'rgb(219, 92, 22)'
-let colors = ['rgb(219, 92, 22)'];
+//array of colors to be able to update colors programatically, just call color[value] to get right color 
+//colors follow pattern red blue green
+let colors = {2 : 'rgb(219, 92, 22)', 4 :'rgb(7, 95, 150)', 8 : 'rgb(12, 164, 94)', 16 : 'rgb(164, 12, 116)',
+			  32 : 'rgb(12, 141, 164)', 64 : 'rgb(12, 164, 105)', 128 : 'rgb(164, 12, 12)', 256 : 'rgb(12, 83, 164',
+			  512 : 'rgb(12, 247, 164)', 1028 : 'rgb(247, 12, 172)', 2048 : 'rgb(0, 0, 0)'};
 
 
 //globals for game board
@@ -19,20 +21,19 @@ function Model(){
 
 	//holds direction
 	this.moveDir = null;
-	//lets us know tiles need to be moved
-	this.moveDirCount = [];
+	//boolean to update on key press
 	this.updateNeeded = false;
 	//gets first value for first tile
 	init = this.generateRandomNumber(1,16);
 	//used to make sure we dont have duplicate random numbers
 	prevInit = init;
 	//sets first tile
-	this.setTile(init, 2, colors[0]);
+	this.setTile(init, 2);
 	//loops until we have 2 unique random values
 	while(init == prevInit)
 		init = this.generateRandomNumber(1,16);
 	//sets second tile
-	this.setTile(init, 2, colors[0]);
+	this.setTile(init, 2);
 	//updates game locations
 	this.updateBoardLocations();
 
@@ -41,17 +42,19 @@ function Model(){
 Model.prototype.update = function(){
 
 	let locations = [];
+	let checkCollide = false;
 	if(this.updateNeeded){
 
 		//gets locations of all items
 		locations = this.getLocationInfo();
-		//calculates how many moves towards direction will be needed
+		//moves tiles over based on direction indicated from user
 		this.tileMove(locations, this.moveDir);
 
 	}
 
 	//if all items on board have been moved
 	//update game board to reflect changes
+	//after all moves have been made check for collisions and combine
 	let doUpdate;
 	if(locations.length > 0){
 		for (let item of locations){
@@ -62,8 +65,66 @@ Model.prototype.update = function(){
 			else
 				doUpdate = true;
 		}
-		if(doUpdate)
+		if(doUpdate){
+			checkCollide = true;
 			this.updateBoardLocations();
+		}
+	}
+
+	if(checkCollide){
+		//check for two tiles being adjacent in relation to direction and combine like numbers
+		this.collideAndCombine(this.moveDir);
+		//will update board with random tile
+		this.generateNewTile();
+		this.updateBoardLocations();
+
+	}	
+
+
+}
+
+Model.prototype.generateNewTile = function(){
+
+	//gets all numbers on the board
+	let list = document.getElementById('box-container').getElementsByClassName('Box');
+	let i = 0;
+	//generates random number
+	let newNum = this.generateRandomNumber(1,15);
+
+	//tests if the space we've generated is already taken
+	//if it iterates through all locations and cant find an open spot the game is over
+	while((list[newNum-1].innerText != "") && i < 16)
+		newNum = this.generateRandomNumber(1,15);
+	//sets new tile
+	this.setTile(newNum, 2);
+}
+
+Model.prototype.collideAndCombine = function(direction){
+
+	//gets all numbers on the board
+	let list = document.getElementById('box-container').getElementsByClassName('Box');
+	//checks for first number
+	for(i = 0; i < list.length; i++){
+		//if number is found check for another number in the move direction
+		if(list[i].innerText != ""){
+			if(i+direction >= 0 && i+direction < 16){
+				//checks if number to whichever direction of current item is a number
+				if(list[i+direction].innerText != ""){
+					//checks to see if those numbers are equal
+					if(list[i+direction].innerText == list[i].innerText){
+						let value = parseInt(list[i+direction].innerText)+parseInt(list[i].innerText);
+						list[i].innerText = "";
+						list[i].style.backgroundColor = base;
+						this.setTile(i+direction+1, value);
+
+
+					}
+
+				}
+
+			}
+
+		}
 	}
 
 
@@ -109,7 +170,7 @@ Model.prototype.tileMove = function(distInfo, moveTowards){
 						list[current.location].style.backgroundColor =  base;
 						//updates new tile
 						list[current.location+moveTowards].innerText = current.value;
-						list[current.location+moveTowards].style.backgroundColor = colors[0];
+						list[current.location+moveTowards].style.backgroundColor = colors[current.value];
 						//update location
 						current.location+=1;
 					}	
@@ -131,7 +192,7 @@ Model.prototype.tileMove = function(distInfo, moveTowards){
 						list[current.location].style.backgroundColor =  base;
 						//updates new tile
 						list[current.location+moveTowards].innerText = current.value;
-						list[current.location+moveTowards].style.backgroundColor = colors[0];
+						list[current.location+moveTowards].style.backgroundColor = colors[current.value];
 						//update location
 						current.location-=1;
 					}	
@@ -153,7 +214,7 @@ Model.prototype.tileMove = function(distInfo, moveTowards){
 						list[current.location].style.backgroundColor =  base;
 						//updates new tile
 						list[current.location+moveTowards].innerText = current.value;
-						list[current.location+moveTowards].style.backgroundColor = colors[0];
+						list[current.location+moveTowards].style.backgroundColor = colors[current.value];
 						//update location
 						current.location+=1;
 					}	
@@ -175,7 +236,7 @@ Model.prototype.tileMove = function(distInfo, moveTowards){
 						list[current.location].style.backgroundColor =  base;
 						//updates new tile
 						list[current.location+moveTowards].innerText = current.value;
-						list[current.location+moveTowards].style.backgroundColor = colors[0];
+						list[current.location+moveTowards].style.backgroundColor = colors[current.value];
 						//update location
 						current.location+=1;
 					}	
@@ -241,11 +302,11 @@ Model.prototype.getLocationInfo = function(){
 
 }
 
-Model.prototype.setTile = function(tile, value, color){
+Model.prototype.setTile = function(tile, value){
 
 	box = document.getElementById("b"+tile);
 	box.innerText = value;
-	box.style.backgroundColor = color;
+	box.style.backgroundColor = colors[value];
 
 }
 
@@ -294,7 +355,6 @@ Model.prototype.generateRandomNumber = function(min, max){
 	max = Math.floor(max);
 
 	return Math.floor(Math.random()*(max - min))+min;
-
 
 }
 
