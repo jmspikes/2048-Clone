@@ -1,21 +1,15 @@
-//single number should be 7.5vh
-//double number should be 6.5vh
-//triple number should be 4.5vh
-//2048 should be 3.8vh
 
-
-//globals for the number design
+//globals for the number styling
 let base = 'rgb(194,114,0)';
 //array of colors to be able to update colors programatically, just call color[value] to get right color 
 //colors follow pattern red blue green
 let colors = {2 : 'rgb(219, 92, 22)', 4 :'rgb(7, 95, 150)', 8 : 'rgb(12, 164, 94)', 16 : 'rgb(164, 12, 116)',
-			  32 : 'rgb(12, 141, 164)', 64 : 'rgb(12, 164, 105)', 128 : 'rgb(164, 12, 12)', 256 : 'rgb(12, 83, 164',
-			  512 : 'rgb(12, 247, 164)', 1028 : 'rgb(247, 12, 172)', 2048 : 'rgb(0, 0, 0)'};
+			  32 : 'rgb(12, 141, 164)', 64 : 'rgb(12, 124, 105)', 128 : 'rgb(164, 12, 12)', 256 : 'rgb(12, 83, 100',
+			  512 : 'rgb(12, 247, 164)', 1024 : 'rgb(83, 14, 14)', 2048 : 'rgb(219, 37, 37)'};
 
-
-//globals for game board
-gameArray = Array(16).fill("");
-prevArray = Array(16).fill("");
+//global for game state 
+gameContinue = true;
+gameWin = false;
 
 function Model(){
 
@@ -34,9 +28,6 @@ function Model(){
 		init = this.generateRandomNumber(1,16);
 	//sets second tile
 	this.setTile(init, 2);
-	//updates game locations
-	this.updateBoardLocations();
-
 }
 
 Model.prototype.update = function(){
@@ -51,7 +42,6 @@ Model.prototype.update = function(){
 		this.tileMove(locations, this.moveDir);
 
 	}
-
 	//if all items on board have been moved
 	//update game board to reflect changes
 	//after all moves have been made check for collisions and combine
@@ -65,38 +55,48 @@ Model.prototype.update = function(){
 			else
 				doUpdate = true;
 		}
-		if(doUpdate){
+		if(doUpdate)
 			checkCollide = true;
-			this.updateBoardLocations();
-		}
-	}
 
+		
+	}
 	if(checkCollide){
 		//check for two tiles being adjacent in relation to direction and combine like numbers
 		this.collideAndCombine(this.moveDir);
 		//will update board with random tile
 		this.generateNewTile();
-		this.updateBoardLocations();
 
 	}	
-
-
 }
 
 Model.prototype.generateNewTile = function(){
 
 	//gets all numbers on the board
 	let list = document.getElementById('box-container').getElementsByClassName('Box');
-	let i = 0;
 	//generates random number
 	let newNum = this.generateRandomNumber(1,15);
 
 	//tests if the space we've generated is already taken
 	//if it iterates through all locations and cant find an open spot the game is over
-	while((list[newNum-1].innerText != "") && i < 16)
+	let tileCounter = 0;
+	let canPlace = true;
+	for(i = 0; i < list.length; i++){
+
+		if(list[i].innerText != "")
+			tileCounter+=1
+		if(tileCounter == 16)
+			canPlace = false;
+	}
+	if(canPlace){
+	while((list[newNum-1].innerText != ""))
 		newNum = this.generateRandomNumber(1,15);
+
 	//sets new tile
 	this.setTile(newNum, 2);
+	}
+	else
+		//begin end game sequence
+		gameContinue = false;
 }
 
 Model.prototype.collideAndCombine = function(direction){
@@ -112,11 +112,17 @@ Model.prototype.collideAndCombine = function(direction){
 				if(list[i+direction].innerText != ""){
 					//checks to see if those numbers are equal
 					if(list[i+direction].innerText == list[i].innerText){
+						//calculates value of two tiles colliding
 						let value = parseInt(list[i+direction].innerText)+parseInt(list[i].innerText);
-						list[i].innerText = "";
-						list[i].style.backgroundColor = base;
-						this.setTile(i+direction+1, value);
-
+						//resets current tile to base
+						this.resetTile(list,i);
+						//updates new tile with new number
+						this.newTile(list, (i+direction), value);
+						//win condition
+						if(value == 2048){
+							gameWin = true;
+							gameContinue = false;
+						}
 
 					}
 
@@ -126,51 +132,29 @@ Model.prototype.collideAndCombine = function(direction){
 
 		}
 	}
-
-
 }
 
-
-Model.prototype.updateBoardLocations = function(){
-
-	//sets array for calculating distances moved
-	prevArray = gameArray;
-	//resets array for current values 
-	gameArray = Array(16).fill("");
-	//gets current values from page
-	let list = document.getElementById('box-container').getElementsByClassName('Box');
-	for(i = 0; i < list.length; i++){
-		if(list[i].innerText != "")
-			gameArray[i] = list[i].innerText;
-	}
-
-}
 
 Model.prototype.tileMove = function(distInfo, moveTowards){
 
 	//gets all numbers on the board
 	let list = document.getElementById('box-container').getElementsByClassName('Box');
-
 	//loops all tiles to move
 	for(i = 0; i < distInfo.length; i++){
 
 		//for ease of writing
 		let current = distInfo[i];
-
 		//moving right
 		if(moveTowards == 1){
-
 
 				if(current.keepGoing){
 					//spot is open
 					//if next position is open and tile's new location is on the same row
 					if( current.location+moveTowards < 16 && list[current.location+moveTowards].innerText == "" && current.location+moveTowards > 4*current.row && current.location < 4*current.row+3){
 						//resets current tile
-						list[current.location].innerText = "";
-						list[current.location].style.backgroundColor =  base;
+						this.resetTile(list, current.location);
 						//updates new tile
-						list[current.location+moveTowards].innerText = current.value;
-						list[current.location+moveTowards].style.backgroundColor = colors[current.value];
+						this.newTile(list, (current.location+moveTowards), current.value)
 						//update location
 						current.location+=1;
 					}	
@@ -178,21 +162,17 @@ Model.prototype.tileMove = function(distInfo, moveTowards){
 						current.keepGoing = false;
 				}
 		}
-
 		//moving left
 		if(moveTowards == -1){
 
-				
 				if(current.keepGoing){
 					//spot is open
 					//if next position is open and tile's new location is on the same row
 					if( current.location+moveTowards >= 0 && list[current.location+moveTowards].innerText == "" && current.location+moveTowards >= 4*current.row && current.location <= 4*current.row+3){
 						//resets current tile
-						list[current.location].innerText = "";
-						list[current.location].style.backgroundColor =  base;
+						this.resetTile(list, current.location);
 						//updates new tile
-						list[current.location+moveTowards].innerText = current.value;
-						list[current.location+moveTowards].style.backgroundColor = colors[current.value];
+						this.newTile(list, (current.location+moveTowards), current.value)
 						//update location
 						current.location-=1;
 					}	
@@ -200,21 +180,17 @@ Model.prototype.tileMove = function(distInfo, moveTowards){
 						current.keepGoing = false;
 				}
 		}
-
 		//moving down
 		if(moveTowards == 4){
-
 
 				if(current.keepGoing){
 					//spot is open
 					//if next position is open and tile's new location is on the same row
 					if( current.location+moveTowards < 16 && list[current.location+moveTowards].innerText == ""){
 						//resets current tile
-						list[current.location].innerText = "";
-						list[current.location].style.backgroundColor =  base;
+						this.resetTile(list, current.location);
 						//updates new tile
-						list[current.location+moveTowards].innerText = current.value;
-						list[current.location+moveTowards].style.backgroundColor = colors[current.value];
+						this.newTile(list, (current.location+moveTowards), current.value)
 						//update location
 						current.location+=1;
 					}	
@@ -222,7 +198,6 @@ Model.prototype.tileMove = function(distInfo, moveTowards){
 						current.keepGoing = false;
 				}
 		}
-
 		//moving up
 		if(moveTowards == -4){
 
@@ -232,11 +207,9 @@ Model.prototype.tileMove = function(distInfo, moveTowards){
 					//if next position is open and tile's new location is on the same row
 					if( current.location+moveTowards >= 0 && list[current.location+moveTowards].innerText == ""){
 						//resets current tile
-						list[current.location].innerText = "";
-						list[current.location].style.backgroundColor =  base;
+						this.resetTile(list, current.location);
 						//updates new tile
-						list[current.location+moveTowards].innerText = current.value;
-						list[current.location+moveTowards].style.backgroundColor = colors[current.value];
+						this.newTile(list, (current.location+moveTowards), current.value)
 						//update location
 						current.location+=1;
 					}	
@@ -244,8 +217,6 @@ Model.prototype.tileMove = function(distInfo, moveTowards){
 						current.keepGoing = false;
 				}
 		}
-
-
 	}
 
 	//used to calculate if all possible blocks have been moved to their end location 
@@ -258,9 +229,42 @@ Model.prototype.tileMove = function(distInfo, moveTowards){
 		if(mCounter == distInfo.length)
 			this.updateNeeded = false;
 	}
+}
 
+Model.prototype.resetTile = function(list, tile){
 
+	//resets text
+	list[tile].innerText = "";
+	//resets tile color
+	list[tile].style.backgroundColor =  base;
+	//resets font for tile
+	list[tile].style.fontSize = "7.5vh";
+}
 
+Model.prototype.newTile = function(list, tile, value){
+
+	//single number should be 7.5vh
+	//double number should be 6.5vh
+	//triple number should be 4.5vh
+	//2048 should be 3.8vh
+
+	let intValue = parseInt(value);
+	//sets tile font size based off value
+	//1-9
+	if(intValue < 10)
+		list[tile].style.fontSize = "7.5vh";
+	//10-99
+	else if(intValue >= 10 && intValue < 100)
+		list[tile].style.fontSize = "6.5vh";
+	//100-999
+	else if(intValue >= 100 && intValue < 1000)
+		list[tile].style.fontSize = "4.5vh";
+	//1000-2048, will never be greater than 2048, but just in case
+	else if(intValue >= 1000 && intValue < 9999)
+		list[tile].style.fontSize = "3.8vh";
+
+	list[tile].innerText = intValue;
+	list[tile].style.backgroundColor = colors[intValue];
 }
 
 Model.prototype.getLocationInfo = function(){
@@ -304,8 +308,11 @@ Model.prototype.getLocationInfo = function(){
 
 Model.prototype.setTile = function(tile, value){
 
+	//gets tile
 	box = document.getElementById("b"+tile);
+	//sets value of tile
 	box.innerText = value;
+	//sets background color that coresponds to value
 	box.style.backgroundColor = colors[value];
 
 }
@@ -422,12 +429,53 @@ function Game(){
 }
 
 Game.prototype.onTimer = function(){
-
-	this.controller.update();
-	this.model.update();
+	
+	//keeps the game going until the board is filled
+	if(gameContinue){
+		this.controller.update();
+		this.model.update();
+	}
+	else if(gameWin)
+		//plays win animation
+		this.gameWin();
+	else if(gameContinue == false && gameWin == false){
+		//plays lose animation
+		this.gameLose();
+	}	
 
 }
 
+Game.prototype.gameWin = function(){
+
+	//gets gameboard
+	let board = document.getElementById("board");
+	//sets animation
+	board.style.transition = 'all 1s';
+	//fades to background
+	board.style.opacity = 0.6;
+	//win text
+	let element = document.getElementById("endGame");
+	element.innerText = "You win!";
+
+}
+
+Game.prototype.gameLose = function(){
+
+	//gets gameboard
+	let board = document.getElementById("board");
+	//sets animation
+	board.style.transition = 'all 1s';
+	//fades to background
+	board.style.opacity = 0.6;
+	//lose text
+	let element = document.getElementById("endGame");
+	element.innerText = "You Lose.";
+
+}
+
+
+
 let game = new Game();
+
 let timer = setInterval(function(){game.onTimer();}, 40);
 
