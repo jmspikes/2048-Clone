@@ -1,4 +1,3 @@
-
 //globals for the number styling
 let base = 'rgb(194,114,0)';
 //array of colors to be able to update colors programatically, just call color[value] to get right color 
@@ -43,7 +42,6 @@ Model.prototype.update = function(){
 
 	}
 	//if all items on board have been moved
-	//update game board to reflect changes
 	//after all moves have been made check for collisions and combine
 	let doUpdate;
 	if(locations.length > 0){
@@ -74,7 +72,7 @@ Model.prototype.generateNewTile = function(){
 	//gets all numbers on the board
 	let list = document.getElementById('box-container').getElementsByClassName('Box');
 	//generates random number
-	let newNum = this.generateRandomNumber(1,15);
+	let newNum = this.generateRandomNumber(1,16);
 
 	//tests if the space we've generated is already taken
 	//if it iterates through all locations and cant find an open spot the game is over
@@ -89,7 +87,7 @@ Model.prototype.generateNewTile = function(){
 	}
 	if(canPlace){
 	while((list[newNum-1].innerText != ""))
-		newNum = this.generateRandomNumber(1,15);
+		newNum = this.generateRandomNumber(1,16);
 
 	//sets new tile
 	this.setTile(newNum, 2);
@@ -133,7 +131,6 @@ Model.prototype.collideAndCombine = function(direction){
 		}
 	}
 }
-
 
 Model.prototype.tileMove = function(distInfo, moveTowards){
 
@@ -361,7 +358,8 @@ Model.prototype.generateRandomNumber = function(min, max){
 	min = Math.ceil(min);
 	max = Math.floor(max);
 
-	return Math.floor(Math.random()*(max - min))+min;
+	//always return between 1 and 16
+	return Math.floor(Math.random()*max)+min;
 
 }
 
