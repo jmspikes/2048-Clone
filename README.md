@@ -1,2 +1,2 @@
 # 2048-Clone
-Practicing JS/HTML/CSS through building a 2048 clone.
+This is a clone of the game 2048 implemented through HTML/JS/CSS. Live demo can be found at: http://csce.uark.edu/~jmspikes/2048/2048.html
