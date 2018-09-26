@@ -10,8 +10,9 @@ let colors = {2 : 'rgb(219, 92, 22)', 4 :'rgb(7, 95, 150)', 8 : 'rgb(12, 164, 94
 gameContinue = true;
 gameWin = false;
 
-function Model(){
+$("#msg").show().delay(2500).fadeOut();
 
+function Model(){
 	//holds direction
 	this.moveDir = null;
 	//boolean to update on key press
